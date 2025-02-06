@@ -5,6 +5,7 @@ on:
     branches:
       - main
   workflow_dispatch:
+
 jobs:
   build:
     name: Build
@@ -14,6 +15,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Tests
+        run: npm test
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -25,3 +29,22 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Write config file
+        run: |
+        echo "module.exports = {jwtSecret: '${{ secrets.JWT_SECRET }}',
+        db: {
+            connection: {
+            host: '127.0.0.1',
+            user: 'root',
+            password: 'tempdbpassword',
+            database: 'pizza',
+            connectTimeout: 60000,
+            },
+            listPerPage: 10,
+        },
+        factory: {
+            url: 'https://pizza-factory.cs329.click',
+            apiKey: '${{ secrets.FACTORY_API_KEY }}',
+        },
+        };" > src/config.js
