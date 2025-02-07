@@ -2,6 +2,10 @@ const request = require('supertest');
 const app = require('../service');
 const { Role, DB } = require('../database/database.js');
 
+function randomName() {
+  return 'user' + Math.random().toString(36).substring(2, 10);
+}
+
 async function createAdminUser() {
   let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
   user.name = randomName();
@@ -18,11 +22,18 @@ beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
   const registerRes = await request(app).post('/api/auth').send(testUser);
   testUserAuthToken = registerRes.body.token;
+
+  expect(testUserAuthToken).toBeDefined();
   expectValidJwt(testUserAuthToken);
 
-  const adminUser = { name: 'admin user', email: `admin${Math.random().toString(36).substring(2, 12)}@test.com`, password: 'adminpass' };
-  const adminRegisterRes = await request(app).post('/api/auth').send(adminUser);
-  testAdminAuthToken = adminRegisterRes.body.token;
+  const adminUser = await createAdminUser();
+  const adminLoginRes = await request(app).put('/api/auth').send({
+    email: adminUser.email,
+    password: 'toomanysecrets',
+  });
+  testAdminAuthToken = adminLoginRes.body.token;
+
+  expect(testAdminAuthToken).toBeDefined();
   expectValidJwt(testAdminAuthToken);
 });
 
@@ -102,7 +113,7 @@ test('add menu item (authorized)', async () => {
 test('get orders (authorized)', async () => {
   const res = await request(app)
     .get('/api/order')
-    .set('Authorization', `Bearer ${testUserAuthToken}`);
+    .set('Authorization', `Bearer ${testAdminAuthToken}`);
   expect(res.status).toBe(200);
   expect(res.body).toHaveProperty('orders');
 });
@@ -116,10 +127,47 @@ test('create order (authorized)', async () => {
   
   const res = await request(app)
     .post('/api/order')
-    .set('Authorization', `Bearer ${testUserAuthToken}`) // Any authenticated user can order
+    .set('Authorization', `Bearer ${testAdminAuthToken}`) // Any authenticated user can order
     .send(order);
   expect(res.status).toBe(200);
   expect(res.body).toHaveProperty('order');
+});
+
+test('register with missing email fails', async () => {
+  const res = await request(app).post('/api/auth').send({ name: 'Test', password: 'password' });
+  expect(res.status).toBe(400);
+});
+
+test('register duplicate user fails', async () => {
+  await request(app).post('/api/auth').send(testUser);
+  const res = await request(app).post('/api/auth').send(testUser);
+  expect(res.status).toBe(400);
+});
+
+test('login with wrong password fails', async () => {
+  const res = await request(app).put('/api/auth').send({ ...testUser, password: 'wrongpass' });
+  expect(res.status).toBe(401);
+});
+
+test('accessing protected route with invalid token fails', async () => {
+  const res = await request(app)
+    .get('/api/order')
+    .set('Authorization', `Bearer invalidToken`);
+  expect(res.status).toBe(401);
+});
+
+test('create order with invalid menuId fails', async () => {
+  const order = {
+    franchiseId: 1,
+    storeId: 1,
+    items: [{ menuId: 999, description: 'Invalid item', price: 5.00 }],
+  };
+  
+  const res = await request(app)
+    .post('/api/order')
+    .set('Authorization', `Bearer ${testAdminAuthToken}`)
+    .send(order);
+  expect(res.status).toBe(400);
 });
 
 function expectValidJwt(potentialJwt) {
