@@ -31,7 +31,7 @@ apiRouter.use('/docs', (req, res) => {
   });
 });
 
-app.get('/', metrics.metricMaker.incrementHttpRequest('GET'), (req, res) => {
+app.get('/', metrics.trackHttpRequest, (req, res) => {
   res.json({
     message: 'welcome to JWT Pizza',
     version: version.version,
