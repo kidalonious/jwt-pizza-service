@@ -67,6 +67,20 @@ class MetricTracker {
         this.latency[endpoint] = value;
     }
 
+    getMetrics() {
+        return {
+            httpRequests: { ...this.httpRequests },
+            totalRequests: this.totalRequests,
+            activeUsers: this.activeUsers,
+            authAttempts: { ...this.authAttempts },
+            cpuUsage: this.getCpuUsagePercentage(),
+            memoryUsage: this.getMemoryUsagePercentage(),
+            latency: { ...this.latency },
+            pizzaSales: this.pizzaSales,
+            pizzaRevenue: parseFloat(this.pizzaRevenue.toFixed(6))
+        };
+    }
+
     sendMetricToGrafana(metricName, metricValue, attributes = {}) {
         attributes = { ...attributes, source: config.metrics.source };
         const metric = {
@@ -81,7 +95,7 @@ class MetricTracker {
                                     sum: {
                                         dataPoints: [
                                             {
-                                                asFloat: parseFloat(metricValue.toFixed(6)),
+                                                asFloat: typeof metricValue === 'number' ? parseFloat(metricValue.toFixed(6)) : 0,
                                                 timeUnixNano: Date.now() * 1000000,
                                                 attributes: [],
                                             },
