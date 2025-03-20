@@ -12,6 +12,9 @@ class MetricTracker {
         this.memoryUsage = 0;
         this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
         this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 60000);
+        this.pizzaSales = 0;
+        this.pizzaRevenue = 0;
+        this.pizzaFailures = 0;
     }
 
     incrementHttpRequest(method) {
@@ -35,6 +38,19 @@ class MetricTracker {
         } else {
             this.authAttempts['failed']++;
         }
+    }
+
+    incrementPizzaSales() {
+        this.pizzaSales += 1;
+        this.incrementPizzaRevenue();
+    }
+
+    incrementPizzaRevenue() {
+        this.pizzaRevenue += .002;
+    }
+
+    incrementPizzaFailures() {
+        this.pizzaFailures += 1;
     }
 
     getCpuUsagePercentage() {
@@ -153,11 +169,30 @@ class MetricTracker {
         };
     }
 
-    trackPizzaSales() {
+    trackPizzaSales(successful) {
         return (_req, _res, next) => {
-
+            if (successful) {
+                this.incrementPizzaSales();
+            }
+            else {
+                this.incrementPizzaFailures();
+            }
             next();
         }
+    }
+
+    trackLatency(endpoint) {
+        return (_req, res, next) => {
+            const start = process.hrtime();
+    
+            res.on('finish', () => {
+                const [seconds, nanoseconds] = process.hrtime(start);
+                const durationMs = (seconds * 1000) + (nanoseconds / 1e6);
+                this.setLatency(endpoint, durationMs);
+            });
+    
+            next();
+        };
     }
 }
 

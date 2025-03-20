@@ -75,7 +75,7 @@ orderRouter.get(
 
 // createOrder
 orderRouter.post(
-  '/', metrics.trackHttpRequest('POST'), // add the function call to track pizza orders
+  '/', metrics.trackHttpRequest('POST'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
@@ -88,8 +88,10 @@ orderRouter.post(
     const j = await r.json();
     if (r.ok) {
       res.send({ order, reportSlowPizzaToFactoryUrl: j.reportUrl, jwt: j.jwt });
+      metrics.trackPizzaSales(true);
     } else {
       res.status(500).send({ message: 'Failed to fulfill order at factory', reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl });
+      metrics.trackPizzaSales(false);
     }
   })
 );
