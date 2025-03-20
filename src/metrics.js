@@ -18,10 +18,8 @@ class MetricTracker {
     }
 
     incrementHttpRequest(method) {
-        if (this.httpRequests.hasOwnProperty(method)) {
             this.httpRequests[method]++;
             this.totalRequests++;
-        }
     }
 
     incrementActiveUsers(count) {
