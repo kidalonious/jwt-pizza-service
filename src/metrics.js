@@ -33,11 +33,11 @@ class MetricTracker {
         }
     }
 
-    setCpuUsage(percentage) {
+    setCpuUsage() {
         this.cpuUsage = this.getCpuUsagePercentage();
     }
 
-    setMemoryUsage(percentage) {
+    setMemoryUsage() {
         this.memoryUsage = this.getMemoryUsagePercentage();
     }
 
