@@ -81,7 +81,7 @@ class MetricTracker {
                                     sum: {
                                         dataPoints: [
                                             {
-                                                asFloat: metricValue,
+                                                asFloat: parseFloat(metricValue.toFixed(6)),
                                                 timeUnixNano: Date.now() * 1000000,
                                                 attributes: [],
                                             },
