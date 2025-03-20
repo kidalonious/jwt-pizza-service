@@ -131,27 +131,33 @@ class MetricTracker {
     }
 
     trackHttpRequest(method) {
-        return (req, res, next) => {
+        return (_req, _res, next) => {
             this.incrementHttpRequest(method);
             next();
         };
     }
 
     trackAuthAttempt(success) {
-        return (req, res, next) => {
+        return (_req, _res, next) => {
             this.incrementAuthAttempt(success);
             next();
         };
     }
 
     trackActiveUsers(increment = true) {
-        return (req, res, next) => {
+        return (_req, _res, next) => {
             if (increment) {
                 this.incrementActiveUsers(1);
-                res.on('finish', () => this.decrementActiveUsers(1));
             }
             next();
         };
+    }
+
+    trackPizzaSales() {
+        return (_req, _res, next) => {
+
+            next();
+        }
     }
 }
 
