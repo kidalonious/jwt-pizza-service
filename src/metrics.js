@@ -17,10 +17,8 @@ class MetricTracker {
     }
 
     incrementHttpRequest(method) {
-        if (this.httpRequests.hasOwnProperty(method)) {
-            this.httpRequests[method]++;
-            this.totalRequests++;
-        }
+        this.httpRequests[method]++;
+        this.totalRequests++;
     }
 
     incrementActiveUsers(count) {
@@ -44,9 +42,7 @@ class MetricTracker {
     }
 
     setLatency(endpoint, value) {
-        if (this.latency.hasOwnProperty(endpoint)) {
-            this.latency[endpoint] = value;
-        }
+        this.latency[endpoint] = value;
     }
 
     getMetrics() {
