@@ -5,13 +5,13 @@ const config = require('./config');
 
 class MetricTracker {
     constructor() {
-        this.httpRequests = { GET: 0, PUT: 0, POST: 0, DELETE: 0 };
+        this.httpRequests = { 'GET': 0, 'PUT': 0, 'POST': 0, 'DELETE': 0 };
         this.totalRequests = 0;
         this.activeUsers = 0;
-        this.authAttempts = { successful: 0, failed: 0 };
+        this.authAttempts = { 'successful': 0, 'failed': 0 };
         this.cpuUsage = 0;
         this.memoryUsage = 0;
-        this.latency = { serviceEndpoint: 0, pizzaCreation: 0 };
+        this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
         // This will periodically send metrics to Grafana
         this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 10000);
     }
