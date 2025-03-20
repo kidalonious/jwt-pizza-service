@@ -66,7 +66,7 @@ authRouter.authenticateToken = (req, res, next) => {
 
 // register
 authRouter.post(
-  '/', metrics.trackHttpRequest('POST'),
+  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('register'),
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -87,7 +87,7 @@ authRouter.post(
 
 // login
 authRouter.put(
-  '/', metrics.trackHttpRequest('PUT'), 
+  '/', metrics.trackHttpRequest('PUT'), metrics.trackLatency('login'),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
@@ -102,7 +102,7 @@ authRouter.put(
 
 // logout
 authRouter.delete(
-  '/', metrics.trackHttpRequest('DELETE'),
+  '/', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('logout'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     await clearAuth(req);
@@ -113,7 +113,7 @@ authRouter.delete(
 
 // updateUser
 authRouter.put(
-  '/:userId', metrics.trackHttpRequest('PUT'),
+  '/:userId', metrics.trackHttpRequest('PUT'), metrics.trackLatency('updateUser'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;

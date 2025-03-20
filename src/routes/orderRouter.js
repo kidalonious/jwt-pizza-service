@@ -43,7 +43,7 @@ orderRouter.endpoints = [
 
 // getMenu
 orderRouter.get(
-  '/menu', metrics.trackHttpRequest('GET'),
+  '/menu', metrics.trackHttpRequest('GET'), metrics.trackLatency('getMenu'),
   asyncHandler(async (req, res) => {
     res.send(await DB.getMenu());
   })
@@ -51,7 +51,7 @@ orderRouter.get(
 
 // addMenuItem
 orderRouter.put(
-  '/menu', metrics.trackHttpRequest('PUT'),
+  '/menu', metrics.trackHttpRequest('PUT'), metrics.trackLatency('addMenuItem'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
@@ -66,7 +66,7 @@ orderRouter.put(
 
 // getOrders
 orderRouter.get(
-  '/', metrics.trackHttpRequest('GET'),
+  '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('getOrders'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     res.json(await DB.getOrders(req.user, req.query.page));
@@ -75,7 +75,7 @@ orderRouter.get(
 
 // createOrder
 orderRouter.post(
-  '/', metrics.trackHttpRequest('POST'),
+  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('createOrder'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
