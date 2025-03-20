@@ -1,7 +1,6 @@
 const os = require('os');
+const fetch = require('node-fetch');
 const config = require('./config');
-
-// Implement class to increment request values, create instance of the class and export the class
 
 class MetricTracker {
     constructor() {
@@ -12,73 +11,48 @@ class MetricTracker {
         this.cpuUsage = 0;
         this.memoryUsage = 0;
         this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
-        // This will periodically send metrics to Grafana
-        this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 10000);
+        this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 60000);
     }
 
     incrementHttpRequest(method) {
-        this.httpRequests[method]++;
-        this.totalRequests++;
+        if (this.httpRequests.hasOwnProperty(method)) {
+            this.httpRequests[method]++;
+            this.totalRequests++;
+        }
     }
 
     incrementActiveUsers(count) {
         this.activeUsers += count;
     }
 
+    decrementActiveUsers(count) {
+        this.activeUsers = Math.max(0, this.activeUsers - count);
+    }
+
     incrementAuthAttempt(successful) {
         if (successful) {
-            this.authAttempts.successful++;
+            this.authAttempts['successful']++;
         } else {
-            this.authAttempts.failed++;
+            this.authAttempts['failed']++;
         }
     }
 
-    setCpuUsage() {
-        this.cpuUsage = this.getCpuUsagePercentage();
-    }
-
-    setMemoryUsage() {
-        this.memoryUsage = this.getMemoryUsagePercentage();
-    }
-
-    setLatency(endpoint, value) {
-        this.latency[endpoint] = value;
-    }
-
-    getMetrics() {
-        return {
-            httpRequests: this.httpRequests,
-            totalRequests: this.totalRequests,
-            activeUsers: this.activeUsers,
-            authAttempts: this.authAttempts,
-            cpuUsage: this.cpuUsage,
-            memoryUsage: this.memoryUsage,
-            latency: this.latency,
-        };
-    }
-
-    resetMetrics() {
-        this.httpRequests = { GET: 0, PUT: 0, POST: 0, DELETE: 0 };
-        this.totalRequests = 0;
-        this.activeUsers = 0;
-        this.authAttempts = { successful: 0, failed: 0 };
-        this.cpuUsage = 0;
-        this.memoryUsage = 0;
-        this.latency = { serviceEndpoint: 0, pizzaCreation: 0 };
-    }
-
-
     getCpuUsagePercentage() {
-    const cpuUsage = os.loadavg()[0] / os.cpus().length;
-    return cpuUsage.toFixed(2) * 100;
+        const cpuUsage = os.loadavg()[0] / os.cpus().length;
+        return (cpuUsage * 100).toFixed(2);
     }
 
     getMemoryUsagePercentage() {
-    const totalMemory = os.totalmem();
-    const freeMemory = os.freemem();
-    const usedMemory = totalMemory - freeMemory;
-    const memoryUsage = (usedMemory / totalMemory) * 100;
-    return memoryUsage.toFixed(2);
+        const totalMemory = os.totalmem();
+        const freeMemory = os.freemem();
+        const usedMemory = totalMemory - freeMemory;
+        return ((usedMemory / totalMemory) * 100).toFixed(2);
+    }
+
+    setLatency(endpoint, value) {
+        if (this.latency.hasOwnProperty(endpoint)) {
+            this.latency[endpoint] = value;
+        }
     }
 
     sendMetricToGrafana(metricName, metricValue, attributes = {}) {
@@ -147,8 +121,40 @@ class MetricTracker {
             }
         }
     }
+
+    resetMetrics() {
+        this.httpRequests = { 'GET': 0, 'PUT': 0, 'POST': 0, 'DELETE': 0 };
+        this.totalRequests = 0;
+        this.activeUsers = 0;
+        this.authAttempts = { 'successful': 0, 'failed': 0 };
+        this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
+    }
+
+    trackHttpRequest(method) {
+        return (req, res, next) => {
+            this.incrementHttpRequest(method);
+            next();
+        };
+    }
+
+    trackAuthAttempt(success) {
+        return (req, res, next) => {
+            this.incrementAuthAttempt(success);
+            next();
+        };
+    }
+
+    trackActiveUsers(increment = true) {
+        return (req, res, next) => {
+            if (increment) {
+                this.incrementActiveUsers(1);
+                res.on('finish', () => this.decrementActiveUsers(1));
+            }
+            next();
+        };
+    }
 }
 
-const metricMaker = new MetricTracker();
+const metricMaker = new MetricTracker()
 
-module.exports = { metricMaker };
+module.exports = metricMaker;

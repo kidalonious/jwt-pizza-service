@@ -66,7 +66,7 @@ authRouter.authenticateToken = (req, res, next) => {
 
 // register
 authRouter.post(
-  '/', metrics.metricMaker.incrementHttpRequest('POST'),
+  '/', metrics.trackHttpRequest('POST'),
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -75,33 +75,45 @@ authRouter.post(
     const user = await DB.addUser({ name, email, password, roles: [{ role: Role.Diner }] });
     const auth = await setAuth(user);
     res.json({ user: user, token: auth });
+    if (user) {
+      metrics.trackActiveUsers(true)
+      metrics.trackAuthAttempt(true)
+    }
+    else {
+      metrics.trackAuthAttempt(false);
+    }
   })
 );
 
 // login
 authRouter.put(
-  '/', metrics.metricMaker.incrementHttpRequest('PUT'),
+  '/', metrics.trackHttpRequest('PUT'), 
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
     const auth = await setAuth(user);
     res.json({ user: user, token: auth });
+    if (user) {
+      metrics.metricMaker.incrementActiveUsers();
+      metrics.metricMaker.incrementAuthAttempt(true);
+    }
   })
 );
 
 // logout
 authRouter.delete(
-  '/', metrics.metricMaker.incrementHttpRequest('DELETE'),
+  '/', metrics.trackHttpRequest('DELETE'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     await clearAuth(req);
     res.json({ message: 'logout successful' });
+    metrics.decrementActiveUsers();
   })
 );
 
 // updateUser
 authRouter.put(
-  '/:userId', metrics.metricMaker.incrementHttpRequest('PUT'),
+  '/:userId', metrics.trackHttpRequest('PUT'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
