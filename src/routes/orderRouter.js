@@ -43,7 +43,7 @@ orderRouter.endpoints = [
 
 // getMenu
 orderRouter.get(
-  '/menu', metrics.metricMaker.incrementHttpRequest('GET'),
+  '/menu', metrics.trackHttpRequest('GET'),
   asyncHandler(async (req, res) => {
     res.send(await DB.getMenu());
   })
@@ -51,7 +51,7 @@ orderRouter.get(
 
 // addMenuItem
 orderRouter.put(
-  '/menu', metrics.metricMaker.incrementHttpRequest('PUT'),
+  '/menu', metrics.trackHttpRequest('PUT'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
@@ -66,7 +66,7 @@ orderRouter.put(
 
 // getOrders
 orderRouter.get(
-  '/', metrics.metricMaker.incrementHttpRequest('GET'),
+  '/', metrics.trackHttpRequest('GET'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     res.json(await DB.getOrders(req.user, req.query.page));
@@ -75,7 +75,7 @@ orderRouter.get(
 
 // createOrder
 orderRouter.post(
-  '/', metrics.metricMaker.incrementHttpRequest('POST'), // add the function call to track pizza orders
+  '/', metrics.trackHttpRequest('POST'), // add the function call to track pizza orders
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
