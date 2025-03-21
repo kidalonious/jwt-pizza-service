@@ -112,7 +112,7 @@ class MetricTracker {
         };
 
         Object.keys(attributes).forEach((key) => {
-            metric.resourceMetrics[0].scopeMetrics[0].metrics[0][sum].dataPoints[0].attributes.push({
+            metric.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].attributes.push({
                 key: key,
                 value: { stringValue: attributes[key] },
             });
@@ -126,9 +126,9 @@ class MetricTracker {
             .then((response) => {
                 if (!response.ok) {
                     console.error('Failed to push metrics data to Grafana');
-                } // else {
-                //     console.log(`Pushed ${metricName}`);
-                // }
+                } else {
+                    console.log(`Pushed ${metricName}`);
+                }
             })
             .catch((error) => {
                 console.error('Error pushing metrics:', error);
