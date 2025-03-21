@@ -93,7 +93,7 @@ class MetricTracker {
                                 {
                                     name: metricName,
                                     unit: '1',
-                                    [isCounter ? 'sum' : 'gauge']: {
+                                    [isCounter ? sum : gauge]: {
                                         dataPoints: [
                                             {
                                                 asFloat: typeof metricValue === 'number' ? parseFloat(metricValue.toFixed(6)) : 0,
@@ -113,7 +113,7 @@ class MetricTracker {
         };
 
         Object.keys(attributes).forEach((key) => {
-            metric.resourceMetrics[0].scopeMetrics[0].metrics[0][isCounter ? 'sum' : 'gauge'].dataPoints[0].attributes.push({
+            metric.resourceMetrics[0].scopeMetrics[0].metrics[0][isCounter ? sum : gauge].dataPoints[0].attributes.push({
                 key: key,
                 value: { stringValue: attributes[key] },
             });
