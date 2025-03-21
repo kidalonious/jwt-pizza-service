@@ -83,7 +83,6 @@ class MetricTracker {
 
     sendMetricToGrafana(metricName, metricValue, attributes = {}) {
         attributes = { ...attributes, source: config.metrics.source };
-        const isCounter = metricName.includes("total") || metricName.includes("count") || metricName.includes("sales");
         const metric = {
             resourceMetrics: [
                 {
@@ -93,7 +92,7 @@ class MetricTracker {
                                 {
                                     name: metricName,
                                     unit: '1',
-                                    [isCounter ? sum : gauge]: {
+                                    sum: {
                                         dataPoints: [
                                             {
                                                 asFloat: typeof metricValue === 'number' ? parseFloat(metricValue.toFixed(6)) : 0,
@@ -113,7 +112,7 @@ class MetricTracker {
         };
 
         Object.keys(attributes).forEach((key) => {
-            metric.resourceMetrics[0].scopeMetrics[0].metrics[0][isCounter ? sum : gauge].dataPoints[0].attributes.push({
+            metric.resourceMetrics[0].scopeMetrics[0].metrics[0][sum].dataPoints[0].attributes.push({
                 key: key,
                 value: { stringValue: attributes[key] },
             });
