@@ -92,7 +92,7 @@ class MetricTracker {
                                 {
                                     name: metricName,
                                     unit: '1',
-                                    sum: {
+                                    [isCounter ? 'sum' : 'gauge']: {
                                         dataPoints: [
                                             {
                                                 asFloat: typeof metricValue === 'number' ? parseFloat(metricValue.toFixed(6)) : 0,
