@@ -11,7 +11,7 @@ class MetricTracker {
         this.cpuUsage = 0;
         this.memoryUsage = 0;
         this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
-        this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 1000);
+        this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 60000);
         this.pizzaSales = 0;
         this.pizzaRevenue = 0;
         this.pizzaFailures = 0;
