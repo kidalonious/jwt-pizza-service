@@ -81,70 +81,74 @@ class MetricTracker {
             memoryUsage: this.getMemoryUsagePercentage(),
             latency: { ...this.latency },
             pizzaSales: this.pizzaSales,
-            pizzaRevenue: parseFloat(this.pizzaRevenue.toFixed(6))
+            // pizzaRevenue: parseFloat(this.pizzaRevenue.toFixed(6))
         };
     }
 
-    sendMetricToGrafana(metricName, metricValue, type, unit) {
-        const metric = {
-          resourceMetrics: [
-            {
-              scopeMetrics: [
-                {
-                  metrics: [
-                    {
-                      name: metricName,
-                      unit: unit,
-                      [type]: {
-                        dataPoints: [
-                          {
-                            asFloat: parseFloat(metricValue),
-                            timeUnixNano: Date.now() * 1000000,
-                          },
-                        ],
-                      },
+    sendMetricToGrafana(metricName, metricValue, attributes) {
+      attributes = { ...attributes, source: config.metrics.source };
+    
+      const metric = {
+        resourceMetrics: [
+          {
+            scopeMetrics: [
+              {
+                metrics: [
+                  {
+                    name: metricName,
+                    unit: '1',
+                    sum: {
+                      dataPoints: [
+                        {
+                          asInt: metricValue,
+                          timeUnixNano: Date.now() * 1000000,
+                          attributes: [],
+                        },
+                      ],
+                      aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
+                      isMonotonic: true,
                     },
-                  ],
-                },
-              ],
-            },
-          ],
-        };
-      
-        if (type === 'sum') {
-          metric.resourceMetrics[0].scopeMetrics[0].metrics[0][type].aggregationTemporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE';
-          metric.resourceMetrics[0].scopeMetrics[0].metrics[0][type].isMonotonic = true;
-        }
-      
-        const body = JSON.stringify(metric);
-        fetch(`${config.metrics.url}`, {
-          method: 'POST',
-          body: body,
-          headers: { Authorization: `Bearer ${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
-        })
-          .then((response) => {
-            if (!response.ok) {
-              response.text().then((text) => {
-                console.error(`Failed to push metrics data to Grafana: ${text}\n${body}`);
-              });
-            } else {
-              console.log(`Pushed ${metricName}`);
-            }
-          })
-          .catch((error) => {
-            console.error('Error pushing metrics:', error);
-          });
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
+    
+      Object.keys(attributes).forEach((key) => {
+        metric.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].attributes.push({
+          key: key,
+          value: { stringValue: attributes[key] },
+        });
+      });
+    
+      fetch(`${config.metrics.url}`, {
+        method: 'POST',
+        body: JSON.stringify(metric),
+        headers: { Authorization: `Bearer ${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            console.error('Failed to push metrics data to Grafana');
+          } else {
+            console.log(`Pushed ${metricName}`);
+          }
+        })
+        .catch((error) => {
+          console.error('Error pushing metrics:', error);
+        });
+    }
 
     sendAllMetricsToGrafana() {
         const metrics = this.getMetrics();
         for (const [metricName, metricValue] of Object.entries(metrics)) {
             if (typeof metricValue === 'object') {
                 for (const [subMetricName, subMetricValue] of Object.entries(metricValue)) {
-                    this.sendMetricToGrafana(`${metricName}.${subMetricName}`, subMetricValue, this.grafTypes[metricName] || 'sum', this.grafUnits[metricName] || '1');
+                    this.sendMetricToGrafana(`${metricName}.${subMetricName}`, subMetricValue);
                 }
             } else {
-                this.sendMetricToGrafana(metricName, metricValue, this.grafTypes[metricName] || 'sum', this.grafUnits[metricName] || '1');
+                this.sendMetricToGrafana(metricName, metricValue);
             }
         }
     }
