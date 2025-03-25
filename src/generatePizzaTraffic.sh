@@ -18,7 +18,7 @@ cleanup() {
 # Trap SIGINT (Ctrl+C) to execute the cleanup function
 trap cleanup SIGINT
 
-# Simulate a user requesting the menu every 3 seconds
+# Simulate a user requesting the menu every 3 seconds: clean
 while true; do
   curl -s "$host/api/order/menu" > /dev/null
   echo "Requesting menu..."
@@ -26,7 +26,7 @@ while true; do
 done &
 pid1=$!
 
-# Simulate a user with an invalid email and password every 25 seconds
+# Simulate a user with an invalid email and password every 25 seconds: clean
 while true; do
   curl -s -X PUT "$host/api/auth" -d '{"email":"unknown@jwt.com", "password":"bad"}' -H 'Content-Type: application/json' > /dev/null
   echo "Logging in with invalid credentials..."
@@ -34,7 +34,7 @@ while true; do
 done &
 pid2=$!
 
-# Simulate a franchisee logging in every two minutes
+# Simulate a franchisee logging in every two minutes: causes problem on login but not logout
 while true; do
   response=$(curl -s -X PUT $host/api/auth -d '{"email":"f@jwt.com", "password":"franchisee"}' -H 'Content-Type: application/json')
   token=$(echo $response | jq -r '.token')
@@ -46,7 +46,7 @@ while true; do
 done &
 pid3=$!
 
-# Simulate a diner ordering a pizza every 20 seconds
+# Simulate a diner ordering a pizza every 20 seconds: causes problem on login
 while true; do
   response=$(curl -s -X PUT $host/api/auth -d '{"email":"d@jwt.com", "password":"diner"}' -H 'Content-Type: application/json')
   token=$(echo $response | jq -r '.token')

@@ -92,11 +92,11 @@ authRouter.put(
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
     const auth = await setAuth(user);
-    res.json({ user: user, token: auth });
     if (user) {
       metrics.metricMaker.incrementActiveUsers();
       metrics.metricMaker.incrementAuthAttempt(true);
     }
+    res.json({ user: user, token: auth });
   })
 );
 

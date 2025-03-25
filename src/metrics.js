@@ -15,6 +15,10 @@ class MetricTracker {
         this.pizzaSales = 0;
         this.pizzaRevenue = 0;
         this.pizzaFailures = 0;
+        // create dictionary that keeps track of the variable and what type it is for grafana
+        // unit needed as well
+        this.grafTypes = { 'cpuUsage':'gauge', 'memoryUsage':'gauge' };
+        this.grafUnits = { 'latency':'ms', 'cpuUsage':'%', 'memoryUsage':'%',  }
     }
 
     incrementHttpRequest(method) {
@@ -81,69 +85,66 @@ class MetricTracker {
         };
     }
 
-    sendMetricToGrafana(metricName, metricValue, attributes = {}) {
-        attributes = { ...attributes, source: config.metrics.source };
+    sendMetricToGrafana(metricName, metricValue, type, unit) {
         const metric = {
-            resourceMetrics: [
+          resourceMetrics: [
+            {
+              scopeMetrics: [
                 {
-                    scopeMetrics: [
-                        {
-                            metrics: [
-                                {
-                                    name: metricName,
-                                    unit: '1',
-                                    sum: {
-                                        dataPoints: [
-                                            {
-                                                asFloat: typeof metricValue === 'number' ? parseFloat(metricValue.toFixed(6)) : 0,
-                                                timeUnixNano: Date.now() * 1000000,
-                                                attributes: [],
-                                            },
-                                        ],
-                                        aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
-                                        isMonotonic: true,
-                                    },
-                                },
-                            ],
-                        },
-                    ],
+                  metrics: [
+                    {
+                      name: metricName,
+                      unit: unit,
+                      [type]: {
+                        dataPoints: [
+                          {
+                            asFloat: parseFloat(metricValue),
+                            timeUnixNano: Date.now() * 1000000,
+                          },
+                        ],
+                      },
+                    },
+                  ],
                 },
-            ],
+              ],
+            },
+          ],
         };
-
-        Object.keys(attributes).forEach((key) => {
-            metric.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].attributes.push({
-                key: key,
-                value: { stringValue: attributes[key] },
-            });
-        });
-
+      
+        if (type === 'sum') {
+          metric.resourceMetrics[0].scopeMetrics[0].metrics[0][type].aggregationTemporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE';
+          metric.resourceMetrics[0].scopeMetrics[0].metrics[0][type].isMonotonic = true;
+        }
+      
+        const body = JSON.stringify(metric);
         fetch(`${config.metrics.url}`, {
-            method: 'POST',
-            body: JSON.stringify(metric),
-            headers: { Authorization: `Bearer ${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
+          method: 'POST',
+          body: body,
+          headers: { Authorization: `Bearer ${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
         })
-            .then((response) => {
-                if (!response.ok) {
-                    console.error('Failed to push metrics data to Grafana');
-                } else {
-                    console.log(`Pushed ${metricName}`);
-                }
-            })
-            .catch((error) => {
-                console.error('Error pushing metrics:', error);
-            });
-    }
+          .then((response) => {
+            if (!response.ok) {
+              response.text().then((text) => {
+                console.error(`Failed to push metrics data to Grafana: ${text}\n${body}`);
+              });
+            } else {
+              console.log(`Pushed ${metricName}`);
+            }
+          })
+          .catch((error) => {
+            console.error('Error pushing metrics:', error);
+          });
+      };
 
     sendAllMetricsToGrafana() {
         const metrics = this.getMetrics();
         for (const [metricName, metricValue] of Object.entries(metrics)) {
             if (typeof metricValue === 'object') {
                 for (const [subMetricName, subMetricValue] of Object.entries(metricValue)) {
-                    this.sendMetricToGrafana(`${metricName}.${subMetricName}`, subMetricValue);
+                    this.sendMetricToGrafana(`${metricName}.${subMetricName}`, subMetricValue, this.grafTypes[metricName] || 'sum', this.grafUnits[metricName] || '1');
                 }
             } else {
-                this.sendMetricToGrafana(metricName, metricValue);
+                this.sendMetricToGrafana(metricName, metricValue, this.grafTypes[metricName] || 'sum', this.grafUnits[metricName] || '1');
             }
         }
     }
