@@ -287,6 +287,7 @@ class DB {
 
   async query(connection, sql, params) {
     const [results] = await connection.execute(sql, params);
+    logger.logger.dbLogger(sql);
     return results;
   }
 
@@ -353,8 +354,6 @@ class DB {
     return rows.length > 0;
   }
 }
-
-logger.dbLogger(sql);
 
 const db = new DB();
 module.exports = { Role, DB: db };

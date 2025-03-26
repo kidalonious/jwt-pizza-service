@@ -3,7 +3,7 @@ const logger = require('./logger.js');
 class StatusCodeError extends Error {
   constructor(message, statusCode) {
     super(message);
-    logger.unhandledErrorLogger(this);
+    logger.logger.unhandledErrorLogger(this);
     this.statusCode = statusCode;
   }
 }
