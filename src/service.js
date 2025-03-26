@@ -17,6 +17,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(logger.httpLogger);
+
 const apiRouter = express.Router();
 app.use('/api', apiRouter);
 apiRouter.use('/auth', authRouter);
