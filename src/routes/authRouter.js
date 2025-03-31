@@ -94,7 +94,7 @@ authRouter.put(
     const auth = await setAuth(user);
     if (user) {
       // metrics.metricMaker.incrementActiveUsers();
-      metrics.metricMaker.incrementAuthAttempt(true);
+      // metrics.metricMaker.incrementAuthAttempt(true);
     }
     res.json({ user: user, token: auth });
   })
