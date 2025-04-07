@@ -147,6 +147,7 @@ class MetricTracker {
                 this.sendMetricToGrafana(metricName, metricValue);
             }
         }
+        this.clearHttpRequests();
     }
 
     resetMetrics() {
@@ -204,6 +205,14 @@ class MetricTracker {
     
             next();
         };
+    }
+
+    clearHttpRequests() {
+        this.totalRequests = 0;
+        this.httpRequests['GET'] = 0;
+        this.httpRequests['DELETE'] = 0;
+        this.httpRequests['POST'] = 0;
+        this.httpRequests['PUT'] = 0;
     }
 }
 
