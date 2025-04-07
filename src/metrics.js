@@ -42,11 +42,6 @@ class MetricTracker {
 
     incrementPizzaSales() {
         this.pizzaSales += 1;
-        this.incrementPizzaRevenue();
-    }
-
-    incrementPizzaRevenue() {
-        this.pizzaRevenue += .002;
     }
 
     incrementPizzaFailures() {

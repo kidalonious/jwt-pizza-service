@@ -89,8 +89,8 @@ orderRouter.post(
     const j = await r.json();
     if (r.ok) {
       res.send({ order, reportSlowPizzaToFactoryUrl: j.reportUrl, jwt: j.jwt });
-      metrics.trackPizzaSales(true);
       const orderInfo = { diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order };
+      metrics.trackPizzaSales(true);
       logger.logger.factoryLogger(orderInfo);
     } else {
       res.status(500).send({ message: 'Failed to fulfill order at factory', reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl });
