@@ -15,8 +15,6 @@ class MetricTracker {
         this.pizzaSales = 0;
         this.pizzaRevenue = 0;
         this.pizzaFailures = 0;
-        // create dictionary that keeps track of the variable and what type it is for grafana
-        // unit needed as well
         this.grafTypes = { 'cpuUsage':'gauge', 'memoryUsage':'gauge' };
         this.grafUnits = { 'latency':'ms', 'cpuUsage':'%', 'memoryUsage':'%',  }
     }
