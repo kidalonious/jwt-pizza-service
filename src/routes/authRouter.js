@@ -66,7 +66,7 @@ authRouter.authenticateToken = (req, res, next) => {
 
 // register
 authRouter.post(
-  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('register'),
+  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -87,7 +87,7 @@ authRouter.post(
 
 // login
 authRouter.put(
-  '/', metrics.trackHttpRequest('PUT'), metrics.trackLatency('login'),
+  '/', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
@@ -102,7 +102,7 @@ authRouter.put(
 
 // logout
 authRouter.delete(
-  '/', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('logout'),
+  '/', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     await clearAuth(req);
@@ -113,7 +113,7 @@ authRouter.delete(
 
 // updateUser
 authRouter.put(
-  '/:userId', metrics.trackHttpRequest('PUT'), metrics.trackLatency('updateUser'),
+  '/:userId', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;

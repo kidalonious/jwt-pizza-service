@@ -58,7 +58,7 @@ franchiseRouter.endpoints = [
 
 // getFranchises
 franchiseRouter.get(
-  '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('getFranchises'),
+  '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
     res.json(await DB.getFranchises(req.user));
   })
@@ -66,7 +66,7 @@ franchiseRouter.get(
 
 // getUserFranchises
 franchiseRouter.get(
-  '/:userId', metrics.trackHttpRequest('GET'), metrics.trackLatency('getUserFranchises'),
+  '/:userId', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     let result = [];
@@ -81,7 +81,7 @@ franchiseRouter.get(
 
 // createFranchise
 franchiseRouter.post(
-  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('createFranchise'),
+  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
@@ -95,7 +95,7 @@ franchiseRouter.post(
 
 // deleteFranchise
 franchiseRouter.delete(
-  '/:franchiseId', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('deleteFranchise'),
+  '/:franchiseId', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
       throw new StatusCodeError('unable to delete a franchise', 403);
@@ -109,7 +109,7 @@ franchiseRouter.delete(
 
 // createStore
 franchiseRouter.post(
-  '/:franchiseId/store', metrics.trackHttpRequest('POST'), metrics.trackLatency('createStore'),
+  '/:franchiseId/store', metrics.trackHttpRequest('POST'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const franchiseId = Number(req.params.franchiseId);
@@ -124,7 +124,7 @@ franchiseRouter.post(
 
 // deleteStore
 franchiseRouter.delete(
-  '/:franchiseId/store/:storeId', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('deleteStore'),
+  '/:franchiseId/store/:storeId', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const franchiseId = Number(req.params.franchiseId);

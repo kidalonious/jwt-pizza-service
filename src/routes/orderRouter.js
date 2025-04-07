@@ -44,7 +44,7 @@ orderRouter.endpoints = [
 
 // getMenu
 orderRouter.get(
-  '/menu', metrics.trackHttpRequest('GET'), metrics.trackLatency('getMenu'),
+  '/menu', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
     res.send(await DB.getMenu());
   })
@@ -52,7 +52,7 @@ orderRouter.get(
 
 // addMenuItem
 orderRouter.put(
-  '/menu', metrics.trackHttpRequest('PUT'), metrics.trackLatency('addMenuItem'),
+  '/menu', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
@@ -67,7 +67,7 @@ orderRouter.put(
 
 // getOrders
 orderRouter.get(
-  '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('getOrders'),
+  '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     res.json(await DB.getOrders(req.user, req.query.page));
@@ -76,7 +76,7 @@ orderRouter.get(
 
 // createOrder
 orderRouter.post(
-  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('createOrder'),
+  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('pizzaCreation'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
