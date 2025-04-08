@@ -46,7 +46,11 @@ orderRouter.endpoints = [
 orderRouter.get(
   '/menu', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     res.send(await DB.getMenu());
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 
@@ -55,6 +59,7 @@ orderRouter.put(
   '/menu', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     if (!req.user.isRole(Role.Admin)) {
       throw new StatusCodeError('unable to add menu item', 403);
     }
@@ -62,6 +67,9 @@ orderRouter.put(
     const addMenuItemReq = req.body;
     await DB.addMenuItem(addMenuItemReq);
     res.send(await DB.getMenu());
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 
@@ -70,15 +78,20 @@ orderRouter.get(
   '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     res.json(await DB.getOrders(req.user, req.query.page));
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 
 // createOrder
 orderRouter.post(
-  '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('pizzaCreation'),
+  '/', metrics.trackHttpRequest('POST'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
     const r = await fetch(`${config.factory.url}/api/order`, {
@@ -96,6 +109,9 @@ orderRouter.post(
       res.status(500).send({ message: 'Failed to fulfill order at factory', reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl });
       metrics.trackPizzaSales(false);
     }
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('pizzaCreation', value);
   })
 );
 

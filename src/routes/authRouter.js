@@ -68,6 +68,7 @@ authRouter.authenticateToken = (req, res, next) => {
 authRouter.post(
   '/', metrics.trackHttpRequest('POST'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'name, email, and password are required' });
@@ -82,6 +83,9 @@ authRouter.post(
     else {
       metrics.trackAuthAttempt(false);
     }
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 
@@ -89,6 +93,7 @@ authRouter.post(
 authRouter.put(
   '/', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
     const auth = await setAuth(user);
@@ -97,6 +102,9 @@ authRouter.put(
       metrics.incrementAuthAttempt(true);
     }
     res.json({ user: user, token: auth });
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 
@@ -105,9 +113,13 @@ authRouter.delete(
   '/', metrics.trackHttpRequest('DELETE'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     await clearAuth(req);
     res.json({ message: 'logout successful' });
     metrics.decrementActiveUsers(1);
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 
@@ -116,6 +128,7 @@ authRouter.put(
   '/:userId', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const start = process.hrtime();
     const { email, password } = req.body;
     const userId = Number(req.params.userId);
     const user = req.user;
@@ -125,6 +138,9 @@ authRouter.put(
 
     const updatedUser = await DB.updateUser(userId, email, password);
     res.json(updatedUser);
+    const end = process.hrtime();
+    const value = end - start;
+    metrics.setLatency('serviceEndpoint', value);
   })
 );
 

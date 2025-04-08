@@ -15,8 +15,6 @@ class MetricTracker {
         this.pizzaSales = 0;
         this.pizzaRevenue = 0;
         this.pizzaFailures = 0;
-        this.grafTypes = { 'cpuUsage':'gauge', 'memoryUsage':'gauge' };
-        this.grafUnits = { 'latency':'ms', 'cpuUsage':'%', 'memoryUsage':'%',  }
     }
 
     incrementHttpRequest(method) {
@@ -145,14 +143,6 @@ class MetricTracker {
         this.clearHttpRequests();
     }
 
-    resetMetrics() {
-        this.httpRequests = { 'GET': 0, 'PUT': 0, 'POST': 0, 'DELETE': 0 };
-        this.totalRequests = 0;
-        this.activeUsers = 0;
-        this.authAttempts = { 'successful': 0, 'failed': 0 };
-        this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
-    }
-
     trackHttpRequest(method) {
         return (_req, _res, next) => {
             this.incrementHttpRequest(method);
@@ -186,20 +176,6 @@ class MetricTracker {
             }
             next();
         }
-    }
-
-    trackLatency(endpoint) {
-        return (_req, res, next) => {
-            const start = process.hrtime();
-    
-            res.on('finish', () => {
-                const [seconds, nanoseconds] = process.hrtime(start);
-                const durationMs = (seconds * 1000) + (nanoseconds / 1e6);
-                this.setLatency(endpoint, durationMs);
-            });
-    
-            next();
-        };
     }
 
     clearHttpRequests() {
