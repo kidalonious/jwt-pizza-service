@@ -182,6 +182,7 @@ class MetricTracker {
             this.incrementPizzaFailures();
         }
     }
+    
 
     clearHttpRequests() {
         this.totalRequests = 0;
