@@ -44,22 +44,22 @@ orderRouter.endpoints = [
 
 // getMenu
 orderRouter.get(
-  '/menu', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
+  '/menu', metrics.trackHttpRequest('GET'),
   asyncHandler(async (req, res) => {
-    const start = process.hrtime();
+    const start = Date.now();
     res.send(await DB.getMenu());
-    const end = process.hrtime();
+    const end = Date.now();
     const value = end - start;
-    metrics.setLatency('serviceEndpoint', value);
+    metrics.setEndpointLatency(value);
   })
 );
 
 // addMenuItem
 orderRouter.put(
-  '/menu', metrics.trackHttpRequest('PUT'), metrics.trackLatency('serviceEndpoint'),
+  '/menu', metrics.trackHttpRequest('PUT'), 
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const start = process.hrtime();
+    const start = Date.now();
     if (!req.user.isRole(Role.Admin)) {
       throw new StatusCodeError('unable to add menu item', 403);
     }
@@ -67,22 +67,22 @@ orderRouter.put(
     const addMenuItemReq = req.body;
     await DB.addMenuItem(addMenuItemReq);
     res.send(await DB.getMenu());
-    const end = process.hrtime();
+    const end = Date.now();
     const value = end - start;
-    metrics.setLatency('serviceEndpoint', value);
+    metrics.setEndpointLatency(value);
   })
 );
 
 // getOrders
 orderRouter.get(
-  '/', metrics.trackHttpRequest('GET'), metrics.trackLatency('serviceEndpoint'),
+  '/', metrics.trackHttpRequest('GET'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const start = process.hrtime();
+    const start = Date.now();
     res.json(await DB.getOrders(req.user, req.query.page));
-    const end = process.hrtime();
+    const end = Date.now();
     const value = end - start;
-    metrics.setLatency('serviceEndpoint', value);
+    metrics.setEndpointLatency(value);
   })
 );
 
@@ -91,7 +91,7 @@ orderRouter.post(
   '/', metrics.trackHttpRequest('POST'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const start = process.hrtime();
+    const start = Date.now();
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
     const r = await fetch(`${config.factory.url}/api/order`, {
@@ -109,9 +109,9 @@ orderRouter.post(
       res.status(500).send({ message: 'Failed to fulfill order at factory', reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl });
       metrics.trackPizzaSales(false);
     }
-    const end = process.hrtime();
+    const end = Date.now();
     const value = end - start;
-    metrics.setLatency('pizzaCreation', value);
+    metrics.setPizzaCreationLatency(value);
   })
 );
 

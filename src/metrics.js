@@ -10,7 +10,8 @@ class MetricTracker {
         this.authAttempts = { 'successful': 0, 'failed': 0 };
         this.cpuUsage = 0;
         this.memoryUsage = 0;
-        this.latency = { 'serviceEndpoint': 0, 'pizzaCreation': 0 };
+        this.endpointLatency = 0;
+        this.pizzaCreationLatency = 0;
         this.timer = setInterval(() => this.sendAllMetricsToGrafana(), 60000);
         this.pizzaSales = 0;
         this.pizzaRevenue = 0;
@@ -58,8 +59,14 @@ class MetricTracker {
         return ((usedMemory / totalMemory) * 100).toFixed(2);
     }
 
-    setLatency(endpoint, value) {
-        this.latency[endpoint] = value;
+    setEndpointLatency(value) {
+         this.endpointLatency = value;
+        console.log("endpoint", value);
+    }
+
+    setPizzaCreationLatency(value) {
+        this.pizzaCreationLatency = value;
+        console.log("pizzaCreation", value);
     }
 
     getMetrics() {
@@ -70,9 +77,10 @@ class MetricTracker {
             authAttempts: { ...this.authAttempts },
             cpuUsage: this.getCpuUsagePercentage(),
             memoryUsage: this.getMemoryUsagePercentage(),
-            latency: { ...this.latency },
+            endpointLatency: this.endpointLatency,
+            pizzaCreationLatency: this.pizzaCreationLatency,
             pizzaSales: this.pizzaSales,
-            // pizzaRevenue: parseFloat(this.pizzaRevenue.toFixed(6))
+            failedPizzaSales: this.pizzaFailures
         };
     }
 
@@ -167,14 +175,11 @@ class MetricTracker {
     }
 
     trackPizzaSales(successful) {
-        return (_req, _res, next) => {
-            if (successful) {
-                this.incrementPizzaSales();
-            }
-            else {
-                this.incrementPizzaFailures();
-            }
-            next();
+        if (successful) {
+            this.incrementPizzaSales();
+        }
+        else {
+            this.incrementPizzaFailures();
         }
     }
 
